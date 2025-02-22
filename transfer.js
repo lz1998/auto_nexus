@@ -18,7 +18,7 @@ const feeData = await provider.getFeeData();
         // 设置交易参数
   const tx = {
             to: toWalletAddress,
-            value: ethers.parseEther('1.0'), // 转账 1 ETH
+            value: ethers.parseEther('0.1'), // 转账 1 ETH
             gasLimit: 2100000000, // 默认 gas limit
             maxFeePerGas: feeData.maxFeePerGas, // 使用获取的 gas 费用
             maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,

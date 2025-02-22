@@ -2,6 +2,7 @@
 import asyncio
 import datetime
 from asyncio import Semaphore
+import tqdm
 
 import aiohttp
 import backoff
@@ -234,28 +235,26 @@ def gen_wallet():
     return account
 
 
-async def main():
-    account = gen_wallet()
-    # 配置
-    WALLET_ADDRESS = account.address
-    PRIVATE_KEY = account.key.hex()
-
-    print(f"{WALLET_ADDRESS}")
-    print(f"{PRIVATE_KEY}")
-    with open(f"accounts/{WALLET_ADDRESS}.txt", "w") as f:
-        f.write(PRIVATE_KEY)
-    os.environ["TO_WALLET_ADDRESS"] = WALLET_ADDRESS
-    os.environ["PRIVATE_KEY"] = PRIVATE_KEY
-    os.system("node transfer.js")
-    os.system("node deploy.js")
-
-    # NUM_NODES = 100
+async def auto_login(addr, key):
+    NUM_NODES = 100
 
     # 创建自动化实例
-    # automation = NexusAutomation(WALLET_ADDRESS, PRIVATE_KEY, NUM_NODES)
+    automation = NexusAutomation(addr, key, NUM_NODES)
 
     # 运行
-    # await automation.run()
+    await automation.run()
+
+
+async def main():
+    address_list = os.listdir("accounts")
+    for address in tqdm.tqdm(address_list):
+        try:
+            address = address.split(".")[0]
+            with open(f"accounts/{address}.txt", "r") as f:
+                private_key = f.read()
+            auto_login(address, private_key)
+        except Exception as e:
+            print(e)
 
 
 if __name__ == "__main__":
