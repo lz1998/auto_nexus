@@ -3,3 +3,4 @@ build/
 package-lock.json
 accounts/
 balance.js
+deployed_contracts.txt
