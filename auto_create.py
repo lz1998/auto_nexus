@@ -30,89 +30,7 @@ class NexusAutomation:
             print("Login failed")
             return
         print("Login success")
-#        existing_count, node_ids = await self.get_user_nodes()
-#        if existing_count >= self.num_nodes:
-#            print(f"Already have {existing_count} nodes, no need to create more")
-#            for node_id in node_ids:
-#                print(f"{node_id}")
-#            return
-#        # 2. 添加节点
-#        if self.user_id:
-#            nodes_to_add = self.num_nodes - existing_count
-#            print(f"Adding {nodes_to_add} nodes (already have {existing_count})...")
-#            self.num_nodes = nodes_to_add
-#            await self.add_nodes()
-#        else:
-#            print("Failed to get user ID, cannot add nodes")
-#        # print user all nodes
-#        existing_count, node_ids = await self.get_user_nodes()
-#        for node_id in node_ids:
-#            print(f"{node_id}")
 
-    async def get_tasks(self):
-        """获取任务列表"""
-        url = "https://beta.orchestrator.nexus.xyz/tasks"
-        headers = {
-            "Accept": "*/*",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Connection": "keep-alive",
-            "Content-Type": "application/octet-stream",
-            "Origin": "https://app.nexus.xyz",
-            "Referer": "https://app.nexus.xyz/",
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
-            "sec-ch-ua": '"Not A(Brand";v="8", "Chromium";v="132"',
-            "sec-ch-ua-platform": '"macOS"',
-            "Authorization": f"Bearer {self.jwt_token}",
-        }
-
-        async with aiohttp.ClientSession() as session:
-            try:
-                async with session.get(url, headers=headers) as response:
-                    if response.status == 200:
-                        print("Tasks retrieved successfully")
-                        return await response.read()
-                    else:
-                        print(f"Failed to get tasks. Status: {response.status}")
-                        return None
-            except Exception as e:
-                print(f"Error getting tasks: {str(e)}")
-                return None
-
-    async def get_user_nodes(self):
-        """获取用户已有的节点及数量"""
-        url = f"https://beta.orchestrator.nexus.xyz/users/{self.wallet_address}"
-        headers = {
-            "Accept": "application/json",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "DNT": "1",
-            "Origin": "https://app.nexus.xyz",
-            "Referer": "https://app.nexus.xyz/",
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
-            "sec-ch-ua": '"Not A(Brand";v="8", "Chromium";v="132"',
-            "sec-ch-ua-platform": '"macOS"',
-            "Authorization": f"Bearer {self.jwt_token}",
-        }
-
-        async with aiohttp.ClientSession() as session:
-            try:
-                async with session.get(url, headers=headers) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        if data.get("data") and data["data"].get("nodes"):
-                            nodes = data["data"]["nodes"]
-                            print(f"\nFound {len(nodes)} existing nodes:")
-                            for node in nodes:
-                                print(f"Node ID: {node['id']}")
-                            return len(nodes), [node["id"] for node in nodes]
-                        return 0, []
-                    else:
-                        print(f"Failed to get nodes. Status: {response.status}")
-                        return 0, []
-            except Exception as e:
-                print(f"Error getting nodes: {str(e)}")
-                return 0, []
 
     async def login(self):
         """执行登录流程"""
@@ -333,4 +251,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
