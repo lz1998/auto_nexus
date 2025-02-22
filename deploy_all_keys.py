@@ -1,18 +1,22 @@
 import os
 import subprocess
-import json
+import shutil
 from web3 import Web3
-from eth_account import Account
 
 # 连接到 RPC 节点
 w3 = Web3(Web3.HTTPProvider('https://rpc.nexus.xyz/http'))
 
 # 指定账户文件的目录
 accounts_dir = 'accounts'
+zero_balance_dir = 'accounts/zero_balance'
 deployed_contracts_file = 'deployed_contracts.txt'
 
-# 获取所有 .json 文件
-account_files = [f for f in os.listdir(accounts_dir) if f.endswith('.json')]
+# 创建零余额账户目录（如果不存在）
+if not os.path.exists(zero_balance_dir):
+    os.makedirs(zero_balance_dir)
+
+# 获取所有 .txt 文件
+account_files = [f for f in os.listdir(accounts_dir) if f.endswith('.txt')]
 
 # 检查是否有账户文件
 if not account_files:
@@ -28,17 +32,21 @@ else:
 
 # 遍历每个账户文件并调用 deploy.js
 for account_file in account_files:
+    # 跳过 zero_balance 目录中的文件
+    if 'zero_balance' in account_file:
+        continue
+
     account_file_path = os.path.join(accounts_dir, account_file)
 
-    # 读取 JSON 文件
+    # 读取 .txt 文件，文件名是地址，内容是私钥
+    address = account_file[:-4]  # 去掉 .txt 后缀
     with open(account_file_path, 'r') as file:
-        account_data = json.load(file)
-        private_key = account_data.get('key')
-        address = account_data.get('address')
+        private_key = file.readline().strip()  # 读取私钥
 
     # 检查私钥和地址是否存在
     if not private_key or not address:
-        print(f"账户文件 {account_file} 中缺少私钥或地址，跳过该文件。")
+        print(f"账户文件 {account_file} 中缺少私钥，删除该文件。")
+        os.remove(account_file_path)  # 删除缺少私钥的文件
         continue
 
     # 检查余额
@@ -47,7 +55,9 @@ for account_file in account_files:
 
     print(f"账户 {address} 的余额: {balance_in_eth} NEX")
     if balance_in_eth < 0.01:
-        print(f"账户 {address} 余额不足，跳过部署")
+        print(f"账户 {address} 余额不足，移动到 zero_balance 目录")
+        # 移动文件到 zero_balance 目录
+        shutil.move(account_file_path, os.path.join(zero_balance_dir, account_file))
         continue
 
     # 检查是否已部署
